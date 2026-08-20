@@ -812,7 +812,7 @@ function Home() {
                 href="mailto:hello@kontri.example"
                 className="group inline-flex items-center gap-3 border-b border-white/30 pb-3 text-sm transition hover:border-white"
               >
-                hello@kontri.example
+                chefkontri@gmail.com
 
                 <ArrowUpRight
                   size={17}
