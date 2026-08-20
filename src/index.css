@@ -1,0 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #f5f5f5;
+  background: #0b0b0b;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: #0b0b0b; }
+::selection { background: #fff; color: #000; }
+
+.font-display { font-family: "Playfair Display", Georgia, serif; }
+.font-mono { font-family: "DM Mono", monospace; }
+
+img { display: block; }
+button, a { -webkit-tap-highlight-color: transparent; }
