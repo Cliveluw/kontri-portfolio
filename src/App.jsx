@@ -37,15 +37,12 @@ import {
 } from "./lib/imageDelivery";
 
 import { supabase } from "./lib/supabase";
+import { submitBookingInquiry } from "./lib/inquiries";
 
 /*
 |--------------------------------------------------------------------------
 | Lazy-loaded Admin
 |--------------------------------------------------------------------------
-|
-| The CMS is loaded only when /admin is visited.
-| This keeps the public portfolio bundle smaller.
-|
 */
 
 const Admin = lazy(() => import("./pages/Admin"));
@@ -136,19 +133,21 @@ function SiteNav() {
       <div className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-black/35 px-5 py-3 backdrop-blur-xl">
 
         <Link
-          to="/"
-          className="font-display text-xl tracking-tight"
-        >
-          KONTRI
-          <span className="text-white/40">
-            .
-          </span>
-        </Link>
-
-        {/* DESKTOP NAVIGATION */}
-
+  to="/"
+  onClick={() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }}
+  className="font-display text-xl tracking-tight"
+>
+  KONTRI
+  <span className="text-white/40">
+    .
+  </span>
+</Link>
         <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
-
           <a
             href="#work"
             className="transition hover:text-white"
@@ -169,10 +168,7 @@ function SiteNav() {
           >
             Contact
           </a>
-
         </nav>
-
-        {/* MOBILE MENU BUTTON */}
 
         <button
           type="button"
@@ -189,8 +185,6 @@ function SiteNav() {
         </button>
 
       </div>
-
-      {/* MOBILE NAVIGATION */}
 
       <AnimatePresence>
         {open && (
@@ -242,6 +236,516 @@ function SiteNav() {
 
 /*
 |--------------------------------------------------------------------------
+| Booking Form
+|--------------------------------------------------------------------------
+*/
+
+function BookingForm() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    service: "",
+    preferred_date: "",
+    location: "",
+    message: "",
+    budget: "",
+    referral_source: "",
+  });
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleChange(event) {
+    const {
+      name,
+      value,
+    } = event.target;
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    setSubmitting(true);
+    setSubmitted(false);
+    setError("");
+
+    try {
+      await submitBookingInquiry(form);
+
+      setSubmitted(true);
+
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        service: "",
+        preferred_date: "",
+        location: "",
+        message: "",
+        budget: "",
+        referral_source: "",
+      });
+    } catch (err) {
+      console.error(
+        "Booking enquiry submission failed:",
+        err
+      );
+
+      setError(
+        "Something went wrong while sending your enquiry. Please try again or contact me directly on WhatsApp."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="flex h-full min-h-[500px] flex-col justify-between border border-white/10 bg-white/[0.025] p-6 md:p-8">
+
+        <div>
+
+          <p className="text-xs uppercase tracking-[0.25em] text-white/35">
+            Enquiry received
+          </p>
+
+          <h3 className="mt-8 font-display text-4xl leading-tight md:text-5xl">
+            Thank you.
+          </h3>
+
+          <p className="mt-6 max-w-md text-sm leading-7 text-white/50">
+            Your enquiry has been received. I'll get back
+            to you as soon as possible to discuss the
+            project.
+          </p>
+
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row">
+
+          <button
+            type="button"
+            onClick={() => setSubmitted(false)}
+            className="border border-white/20 px-5 py-3 text-xs uppercase tracking-[0.2em] text-white/60 transition hover:border-white hover:text-white"
+          >
+            Send another enquiry
+          </button>
+
+          <a
+            href="https://wa.me/265996503157"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white px-5 py-3 text-center text-xs uppercase tracking-[0.2em] text-black transition hover:bg-white/80"
+          >
+            WhatsApp me
+          </a>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="border border-white/10 bg-white/[0.025] p-6 md:p-8"
+    >
+
+      <div className="mb-8">
+
+        <p className="text-xs uppercase tracking-[0.25em] text-white/35">
+          Start a booking enquiry
+        </p>
+
+        <p className="mt-3 text-sm leading-6 text-white/40">
+          Tell me a little about what you have in mind.
+        </p>
+
+      </div>
+
+      <div className="space-y-6">
+
+        {/* NAME */}
+
+        <div>
+          <label
+            htmlFor="booking-name"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Name *
+          </label>
+
+          <input
+            id="booking-name"
+            name="name"
+            type="text"
+            value={form.name}
+            onChange={handleChange}
+            required
+            autoComplete="name"
+            placeholder="Your name"
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/60"
+          />
+        </div>
+
+        {/* EMAIL */}
+
+        <div>
+          <label
+            htmlFor="booking-email"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Email *
+          </label>
+
+          <input
+            id="booking-email"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            autoComplete="email"
+            placeholder="you@example.com"
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/60"
+          />
+        </div>
+
+        {/* PHONE */}
+
+        <div>
+          <label
+            htmlFor="booking-phone"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Phone / WhatsApp
+          </label>
+
+          <input
+            id="booking-phone"
+            name="phone"
+            type="tel"
+            value={form.phone}
+            onChange={handleChange}
+            autoComplete="tel"
+            placeholder="+265..."
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/60"
+          />
+        </div>
+
+        {/* SERVICE */}
+
+        <div>
+          <label
+            htmlFor="booking-service"
+            className="mb-2 block text-xs text-white/40"
+          >
+            What do you need? *
+          </label>
+
+          <select
+            id="booking-service"
+            name="service"
+            value={form.service}
+            onChange={handleChange}
+            required
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none focus:border-white/60"
+          >
+            <option
+              value=""
+              disabled
+              className="bg-black"
+            >
+              Select a service
+            </option>
+
+            <option
+              value="Portrait"
+              className="bg-black"
+            >
+              Portrait
+            </option>
+
+            <option
+              value="Event"
+              className="bg-black"
+            >
+              Event
+            </option>
+
+            <option
+              value="Commercial"
+              className="bg-black"
+            >
+              Commercial
+            </option>
+
+            <option
+              value="Editorial"
+              className="bg-black"
+            >
+              Editorial
+            </option>
+
+            <option
+              value="Visual Story"
+              className="bg-black"
+            >
+              Visual story
+            </option>
+
+            <option
+              value="Other"
+              className="bg-black"
+            >
+              Other
+            </option>
+          </select>
+        </div>
+
+        {/* DATE */}
+
+        <div>
+          <label
+            htmlFor="booking-date"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Preferred date
+          </label>
+
+          <input
+            id="booking-date"
+            name="preferred_date"
+            type="date"
+            value={form.preferred_date}
+            onChange={handleChange}
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none focus:border-white/60"
+          />
+        </div>
+
+        {/* LOCATION */}
+
+        <div>
+          <label
+            htmlFor="booking-location"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Location
+          </label>
+
+          <input
+            id="booking-location"
+            name="location"
+            type="text"
+            value={form.location}
+            onChange={handleChange}
+            placeholder="Lilongwe, Blantyre, Mulanje..."
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none placeholder:text-white/20 focus:border-white/60"
+          />
+        </div>
+
+        {/* MESSAGE */}
+
+        <div>
+          <label
+            htmlFor="booking-message"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Tell me about the project *
+          </label>
+
+          <textarea
+            id="booking-message"
+            name="message"
+            value={form.message}
+            onChange={handleChange}
+            required
+            rows={5}
+            placeholder="What are you looking to create?"
+            className="w-full resize-none border border-white/10 bg-black/20 p-4 text-sm leading-6 text-white outline-none placeholder:text-white/20 focus:border-white/30"
+          />
+        </div>
+
+        {/* BUDGET */}
+
+        <div>
+          <label
+            htmlFor="booking-budget"
+            className="mb-2 block text-xs text-white/40"
+          >
+            Budget range
+          </label>
+
+          <select
+            id="booking-budget"
+            name="budget"
+            value={form.budget}
+            onChange={handleChange}
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none focus:border-white/60"
+          >
+            <option
+              value=""
+              className="bg-black"
+            >
+              Prefer not to say
+            </option>
+
+            <option
+              value="Under MWK 50,000"
+              className="bg-black"
+            >
+              Under MWK 50,000
+            </option>
+
+            <option
+              value="MWK 50,000 - 100,000"
+              className="bg-black"
+            >
+              MWK 50,000 – 100,000
+            </option>
+
+            <option
+              value="MWK 100,000 - 250,000"
+              className="bg-black"
+            >
+              MWK 100,000 – 250,000
+            </option>
+
+            <option
+              value="MWK 250,000+"
+              className="bg-black"
+            >
+              MWK 250,000+
+            </option>
+
+            <option
+              value="Not sure yet"
+              className="bg-black"
+            >
+              Not sure yet
+            </option>
+          </select>
+        </div>
+
+        {/* REFERRAL */}
+
+        <div>
+          <label
+            htmlFor="booking-referral"
+            className="mb-2 block text-xs text-white/40"
+          >
+            How did you find KONTRI?
+          </label>
+
+          <select
+            id="booking-referral"
+            name="referral_source"
+            value={form.referral_source}
+            onChange={handleChange}
+            className="w-full border-b border-white/15 bg-transparent px-0 py-3 text-sm text-white outline-none focus:border-white/60"
+          >
+            <option
+              value=""
+              className="bg-black"
+            >
+              Select an option
+            </option>
+
+            <option
+              value="Instagram"
+              className="bg-black"
+            >
+              Instagram
+            </option>
+
+            <option
+              value="Facebook"
+              className="bg-black"
+            >
+              Facebook
+            </option>
+
+            <option
+              value="YouTube"
+              className="bg-black"
+            >
+              YouTube
+            </option>
+
+            <option
+              value="Google"
+              className="bg-black"
+            >
+              Google
+            </option>
+
+            <option
+              value="Friend / Referral"
+              className="bg-black"
+            >
+              Friend / Referral
+            </option>
+
+            <option
+              value="Other"
+              className="bg-black"
+            >
+              Other
+            </option>
+          </select>
+        </div>
+
+        {/* ERROR */}
+
+        {error && (
+          <div className="border border-red-400/20 bg-red-400/5 p-4 text-sm leading-6 text-red-300">
+            {error}
+          </div>
+        )}
+
+        {/* SUBMIT */}
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="group flex w-full items-center justify-between bg-white px-5 py-4 text-sm text-black transition hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span>
+            {submitting
+              ? "Sending enquiry..."
+              : "Send booking enquiry"}
+          </span>
+
+          {!submitting && (
+            <ArrowUpRight
+              size={18}
+              className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+            />
+          )}
+        </button>
+
+        <p className="text-xs leading-5 text-white/25">
+          By submitting this form, you are sending your
+          enquiry directly to KONTRI for photography
+          booking purposes.
+        </p>
+
+      </div>
+
+    </form>
+  );
+}
+
+/*
+|--------------------------------------------------------------------------
 | Home
 |--------------------------------------------------------------------------
 */
@@ -251,12 +755,6 @@ function Home() {
   const [featuredPhotos, setFeaturedPhotos] = useState([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  /*
-  |--------------------------------------------------------------------------
-  | Load portfolio
-  |--------------------------------------------------------------------------
-  */
 
   useEffect(() => {
     async function loadPortfolio() {
@@ -285,12 +783,6 @@ function Home() {
 
     loadPortfolio();
   }, []);
-
-  /*
-  |--------------------------------------------------------------------------
-  | Supabase connection check
-  |--------------------------------------------------------------------------
-  */
 
   useEffect(() => {
     async function testSupabase() {
@@ -323,24 +815,12 @@ function Home() {
     testSupabase();
   }, []);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Current hero photograph
-  |--------------------------------------------------------------------------
-  */
-
   const heroPhoto =
     featuredPhotos.length > 0
       ? featuredPhotos[
           heroIndex % featuredPhotos.length
         ]
       : photos[0];
-
-  /*
-  |--------------------------------------------------------------------------
-  | Hero navigation
-  |--------------------------------------------------------------------------
-  */
 
   function previousHero() {
     if (featuredPhotos.length <= 1) {
@@ -374,8 +854,6 @@ function Home() {
       ================================================= */}
 
       <section className="relative flex min-h-screen overflow-hidden bg-black">
-
-        {/* HERO IMAGE */}
 
         <div className="absolute inset-0">
 
@@ -423,19 +901,13 @@ function Home() {
 
           </AnimatePresence>
 
-          {/* CINEMATIC OVERLAYS */}
-
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/10" />
 
           <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-transparent" />
 
         </div>
 
-        {/* HERO CONTENT */}
-
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col justify-end px-5 pb-8 pt-32 md:px-10 md:pb-10">
-
-          {/* TOP LABEL */}
 
           <div className="mb-auto pt-24">
 
@@ -445,11 +917,7 @@ function Home() {
 
           </div>
 
-          {/* BOTTOM CONTENT */}
-
           <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
-
-            {/* TITLE */}
 
             <div className="max-w-4xl">
 
@@ -467,11 +935,7 @@ function Home() {
 
             </div>
 
-            {/* HERO CONTROLS */}
-
             <div className="flex items-end justify-between gap-8 md:min-w-[260px] md:flex-col md:items-end">
-
-              {/* COUNTER */}
 
               {featuredPhotos.length > 0 && (
                 <div className="flex items-baseline gap-2 font-mono text-xs">
@@ -494,8 +958,6 @@ function Home() {
 
                 </div>
               )}
-
-              {/* ARROWS */}
 
               {featuredPhotos.length > 1 && (
                 <div className="flex items-center gap-2">
@@ -526,8 +988,6 @@ function Home() {
 
                 </div>
               )}
-
-              {/* EXPLORE */}
 
               <a
                 href="#work"
@@ -597,8 +1057,6 @@ function Home() {
 
         <div className="mx-auto max-w-7xl">
 
-          {/* SECTION LABEL */}
-
           <div className="mb-16 flex items-center justify-between">
 
             <p className="text-xs uppercase tracking-[0.3em] text-white/40">
@@ -610,8 +1068,6 @@ function Home() {
             </span>
 
           </div>
-
-          {/* MAIN STATEMENT */}
 
           <div className="grid gap-16 md:grid-cols-[0.7fr_1.8fr]">
 
@@ -655,11 +1111,7 @@ function Home() {
 
           </div>
 
-          {/* DIVIDER */}
-
           <div className="my-20 h-px bg-white/10 md:my-28" />
-
-          {/* WHAT I PHOTOGRAPH */}
 
           <div className="grid gap-12 md:grid-cols-[0.7fr_1.8fr]">
 
@@ -684,8 +1136,6 @@ function Home() {
 
           </div>
 
-          {/* CLOSING STATEMENT */}
-
           <div className="mt-24 max-w-3xl md:mt-32">
 
             <p className="font-display text-3xl leading-tight text-white/80 md:text-5xl">
@@ -699,7 +1149,7 @@ function Home() {
       </section>
 
       {/* =================================================
-          CONTACT / WORK WITH ME
+          CONTACT / BOOKING
       ================================================= */}
 
       <section
@@ -707,9 +1157,9 @@ function Home() {
         className="mx-auto max-w-7xl px-5 py-28 md:px-10 md:py-40"
       >
 
-        <div className="grid gap-16 md:grid-cols-[1.2fr_0.8fr]">
+        <div className="grid gap-16 md:grid-cols-[1fr_1fr]">
 
-          {/* LEFT */}
+          {/* INTRODUCTION */}
 
           <div>
 
@@ -717,7 +1167,7 @@ function Home() {
               Work with me
             </p>
 
-            <h2 className="max-w-4xl font-display text-6xl leading-[0.9] tracking-[-0.04em] md:text-9xl">
+            <h2 className="max-w-4xl font-display text-6xl leading-[0.9] tracking-[-0.04em] md:text-8xl">
               Let's make
               <br />
               something.
@@ -726,103 +1176,54 @@ function Home() {
             <p className="mt-10 max-w-xl text-base leading-8 text-white/50 md:text-lg">
               Whether it is a portrait, an event, a story,
               a campaign or simply a moment worth
-              remembering — I'd love to hear what you're
-              working on.
+              remembering — tell me what you're working on.
             </p>
 
-          </div>
+            {/* DIRECT CONTACT */}
 
-          {/* RIGHT */}
+            <div className="mt-12 border-t border-white/10 pt-6">
 
-          <div className="flex flex-col justify-end">
-
-            {/* SERVICES */}
-
-            <div className="border-t border-white/10">
-
-              <p className="py-5 text-xs uppercase tracking-[0.25em] text-white/35">
-                Photography
+              <p className="mb-5 text-xs uppercase tracking-[0.25em] text-white/35">
+                Prefer a direct conversation?
               </p>
 
-              <div className="border-t border-white/10">
+              <div className="flex flex-col gap-4">
 
-                <div className="flex items-center justify-between border-b border-white/10 py-4">
-                  <span className="text-sm text-white/65">
-                    Portraits
-                  </span>
+                <a
+                  href="mailto:chefkontri@gmail.com"
+                  className="group inline-flex w-fit items-center gap-3 border-b border-white/30 pb-2 text-sm transition hover:border-white"
+                >
+                  chefkontri@gmail.com
 
-                  <span className="text-xs text-white/25">
-                    01
-                  </span>
-                </div>
+                  <ArrowUpRight
+                    size={17}
+                    className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                  />
+                </a>
 
-                <div className="flex items-center justify-between border-b border-white/10 py-4">
-                  <span className="text-sm text-white/65">
-                    Events
-                  </span>
+                <a
+                  href="https://wa.me/265996503157"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex w-fit items-center gap-3 border-b border-white/30 pb-2 text-sm transition hover:border-white"
+                >
+                  WhatsApp me
 
-                  <span className="text-xs text-white/25">
-                    02
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-white/10 py-4">
-                  <span className="text-sm text-white/65">
-                    Commercial
-                  </span>
-
-                  <span className="text-xs text-white/25">
-                    03
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-white/10 py-4">
-                  <span className="text-sm text-white/65">
-                    Editorial
-                  </span>
-
-                  <span className="text-xs text-white/25">
-                    04
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-white/10 py-4">
-                  <span className="text-sm text-white/65">
-                    Visual stories
-                  </span>
-
-                  <span className="text-xs text-white/25">
-                    05
-                  </span>
-                </div>
+                  <ArrowUpRight
+                    size={17}
+                    className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                  />
+                </a>
 
               </div>
 
             </div>
 
-            {/* CONTACT */}
-
-            <div className="mt-12">
-
-              <p className="mb-5 text-xs uppercase tracking-[0.25em] text-white/35">
-                Start a conversation
-              </p>
-
-              <a
-                href="mailto:hello@kontri.example"
-                className="group inline-flex items-center gap-3 border-b border-white/30 pb-3 text-sm transition hover:border-white"
-              >
-                chefkontri@gmail.com
-
-                <ArrowUpRight
-                  size={17}
-                  className="transition duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-                />
-              </a>
-
-            </div>
-
           </div>
+
+          {/* BOOKING FORM */}
+
+          <BookingForm />
 
         </div>
 
@@ -836,8 +1237,6 @@ function Home() {
 
           <div className="flex items-center gap-5">
 
-            {/* INSTAGRAM */}
-
             <a
               href="https://www.instagram.com/chef_kontri/"
               target="_blank"
@@ -849,8 +1248,6 @@ function Home() {
               <InstagramIcon />
             </a>
 
-            {/* FACEBOOK */}
-
             <a
               href="https://facebook.com/CliveLuw/"
               target="_blank"
@@ -861,8 +1258,6 @@ function Home() {
             >
               <FacebookIcon />
             </a>
-
-            {/* YOUTUBE */}
 
             <a
               href="https://www.youtube.com/@chefkontri"
