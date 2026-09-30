@@ -922,10 +922,10 @@ function Home() {
             <div className="max-w-4xl">
 
               <h1 className="font-display text-6xl leading-[.9] tracking-[-0.045em] md:text-9xl">
-                Seeing home
-                <br />
-                differently.
-              </h1>
+  From where
+  <br />
+  I stand.
+</h1>
 
               <p className="mt-7 max-w-md text-base leading-7 text-white/60 md:text-lg">
                 A visual journal of people, places and
