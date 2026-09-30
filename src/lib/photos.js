@@ -8,17 +8,7 @@ export async function getPublishedPhotos() {
 
   const { data, error } = await supabase
     .from("photos")
-    .select(`
-      *,
-      photo_categories (
-        category_id,
-        categories (
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select("*")
     .eq("published", true)
     .order("created_at", { ascending: false });
 
@@ -32,28 +22,16 @@ export async function getPublishedPhotos() {
 
 /**
  * Get all featured photographs.
- *
- * Featured photographs are used by the
- * automatic homepage hero.
  */
 export async function getFeaturedPhotos() {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("photos")
-    .select(`
-      *,
-      photo_categories (
-        category_id,
-        categories (
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select("*")
     .eq("published", true)
     .eq("featured", true)
+    .order("hero_order", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -72,17 +50,7 @@ export async function getAllPhotos() {
 
   const { data, error } = await supabase
     .from("photos")
-    .select(`
-      *,
-      photo_categories (
-        category_id,
-        categories (
-          id,
-          name,
-          slug
-        )
-      )
-    `)
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {

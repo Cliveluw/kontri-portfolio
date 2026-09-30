@@ -8,71 +8,32 @@ const RESPONSIVE_WIDTHS = [
 ];
 
 /**
- * Convert a normal Supabase public Storage URL
- * into a Supabase image-transformation URL.
- */
-function getTransformBaseUrl(imageUrl) {
-  if (!imageUrl) {
-    return "";
-  }
-
-  if (!imageUrl.includes("/storage/v1/object/public/")) {
-    return imageUrl;
-  }
-
-  return imageUrl
-    .replace(
-      "/storage/v1/object/public/",
-      "/storage/v1/render/image/public/"
-    )
-    .split("?")[0];
-}
-
-/**
- * Get one optimized image URL.
+ * Return the original Supabase Storage URL.
+ *
+ * Images are already optimized during upload,
+ * so we don't need Supabase Image Transformations.
  */
 export function getImageUrl(
   imageUrl,
-  width = 1600,
-  quality = 82
+  _width = 1600,
+  _quality = 82
 ) {
   if (!imageUrl) {
     return "";
   }
 
-  const baseUrl = getTransformBaseUrl(imageUrl);
-
-  // If this isn't a Supabase Storage image,
-  // return the original URL.
-  if (baseUrl === imageUrl && !imageUrl.includes("/render/image/")) {
-    return imageUrl;
-  }
-
-  return `${baseUrl}?width=${width}&quality=${quality}`;
+  return imageUrl;
 }
 
 /**
- * Generate responsive srcSet values.
+ * Don't generate a transformed srcSet.
+ *
+ * Supabase Image Transformations are not available
+ * on the current Free plan.
  */
 export function getImageSrcSet(
-  imageUrl,
-  quality = 82
+  _imageUrl,
+  _quality = 82
 ) {
-  if (!imageUrl) {
-    return undefined;
-  }
-
-  const baseUrl = getTransformBaseUrl(imageUrl);
-
-  if (
-    baseUrl === imageUrl &&
-    !imageUrl.includes("/render/image/")
-  ) {
-    return undefined;
-  }
-
-  return RESPONSIVE_WIDTHS.map(
-    (width) =>
-      `${baseUrl}?width=${width}&quality=${quality} ${width}w`
-  ).join(", ");
+  return undefined;
 }
